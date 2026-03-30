@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0e14">
+    <title>✈ FLIGHT TIMETABLE — Meeting Sync</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #0d1219;
+            --bg-card: #111921;
+            --bg-input: #0a0e14;
+            --cyan-glow: #00e5ff;
+            --cyan-dim: #007a8a;
+            --amber-glow: #ffab00;
+            --amber-dim: #8a5a00;
+            --green-glow: #00ff9d;
+            --green-dim: #008a55;
+            --text-primary: #e0e6ed;
+            --text-secondary: #6b7c8f;
+            --text-dim: #3d4a5c;
+            --border-color: #1e2a38;
+            --scanline-opacity: 0.03;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+        }
+
+        /* Scanline overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, var(--scanline-opacity)) 2px,
+                rgba(0, 0, 0, var(--scanline-opacity)) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Grid background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 16px 0 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '✈';
+            display: block;
+            font-size: 28px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 10px var(--cyan-glow));
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--cyan-glow);
+            text-shadow: 0 0 20px var(--cyan-glow), 0 0 40px rgba(0, 229, 255, 0.3);
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .blink-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--green-glow);
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Base Time Panel */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(90deg, var(--bg-secondary), var(--bg-card));
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-header .indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--cyan-glow);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--cyan-glow);
+        }
+
+        .panel-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--cyan-glow);
+        }
+
+        .panel-content {
+            padding: 14px;
+        }
+
+        /* Time Selector Grid */
+        .time-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .selector-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .selector-group label {
+            font-size: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding-left: 2px;
+        }
+
+        select {
+            padding: 10px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            text-align: center;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* Preset Button */
+        .preset-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--cyan-dim);
+            border-radius: 3px;
+            color: var(--cyan-glow);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preset-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.05);
+        }
+
+        .preset-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Timezone Cards - Departure Board Style */
+        .timezone-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tz-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .tz-card:hover {
+            border-color: var(--cyan-dim);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+        }
+
+        .tz-card-top {
+            display: flex;
+            align-items: stretch;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tz-number {
+            width: 36px;
+            min-width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.15), rgba(0, 229, 255, 0.05));
+            border-right: 1px solid var(--border-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cyan-glow);
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .tz-selector {
+            flex: 1;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .tz-selector select {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 11px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0;
+            text-align: left;
+        }
+
+        .tz-selector select:focus {
+            box-shadow: none;
+            border-color: var(--cyan-glow);
+        }
+
+        .tz-offset {
+            padding: 6px 12px;
+            font-size: 9px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            letter-spacing: 1px;
+        }
+
+        .tz-card-bottom {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: linear-gradient(180deg, var(--bg-card), rgba(0, 0, 0, 0.3));
+        }
+
+        .time-display {
+            flex: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .time-main {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--amber-glow);
+            text-shadow: 0 0 15px var(--amber-glow), 0 0 30px rgba(255, 171, 0, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .time-seconds {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--amber-dim);
+            letter-spacing: 1px;
+        }
+
+        .time-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .time-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .time-day {
+            font-size: 10px;
+            color: var(--green-glow);
+            letter-spacing: 1px;
+        }
+
+        /* Status bar */
+        .status-bar {
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-item {
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        .status-item span {
+            color: var(--green-glow);
+        }
+
+        .install-hint {
+            text-align: center;
+            font-size: 9px;
+            color: var(--text-dim);
+            margin-top: 16px;
+            padding: 10px;
+            background: rgba(0, 229, 255, 0.03);
+            border: 1px dashed var(--border-color);
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 380px) {
+            .time-main {
+                font-size: 22px;
+            }
+            
+            .tz-number {
+                width: 30px;
+                min-width: 30px;
+                font-size: 12px;
+            }
+        }
+
+        @media (min-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 16px;
+                letter-spacing: 6px;
+            }
+            
+            .time-main {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Meeting Sync<span class="blink-dot"></span></h1>
+            <div class="subtitle">Timezone Coordinator</div>
+        </header>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <div class="indicator"></div>
+                <h2>Base Time</h2>
+            </div>
+            <div class="panel-content">
+                <div class="time-selector">
+                    <div class="selector-group">
+                        <label>Year</label>
+                        <select id="year"></select>
+                    </div>
+                    <div class="selector-group">
+                        <label>Month</label>
+                        <select id="month"></select>
+                    </div>
+                    <div class="selector-group">
+                        <label>Day</label>
+                        <select id="day"></select>
+                    </div>
+                    <div class="selector-group">
+                        <label>Hour</label>
+                        <select id="hour"></select>
+                    </div>
+                    <div class="selector-group">
+                        <label>Min</label>
+                        <select id="minute"></select>
+                    </div>
+                    <div class="selector-group">
+                        <label>Second</label>
+                        <select id="second"></select>
+                    </div>
+                    <div class="selector-group" style="grid-column: span 4;">
+                        <label>Timezone</label>
+                        <select id="baseTimezone"></select>
+                    </div>
+                </div>
+                <button class="preset-btn" onclick="loadPresets()">Load Preset Routes</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <div class="indicator"></div>
+                <h2>Destination Times</h2>
+            </div>
+            <div class="panel-content">
+                <div class="timezone-cards" id="timeZones"></div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">System: <span>Online</span></div>
+            <div class="status-item" id="utcDisplay">UTC: <span>--:--</span></div>
+        </div>
+        
+        <div class="install-hint" id="installHint" style="display:none">
+            ↑ Tap Safari Share → Add to Home Screen
+        </div>
+    </div>
+
+    <script>
+        const timezones = [
+            { id: 'Asia/Shanghai', name: '中国 · 北京', country: 'CN' },
+            { id: 'America/Los_Angeles', name: '美国 · 洛杉矶', country: 'US' },
+            { id: 'America/Chicago', name: '美国 · 休斯顿', country: 'US' },
+            { id: 'America/Monterrey', name: '墨西哥 · 蒙特雷', country: 'MX' },
+            { id: 'America/Chicago', name: '美国 · 罗克福德', country: 'US' },
+            { id: 'America/Sao_Paulo', name: '巴西 · 圣保罗', country: 'BR' },
+            { id: 'Europe/Madrid', name: '西班牙 · 马德里', country: 'ES' },
+            { id: 'Europe/London', name: '英国 · 加的夫', country: 'GB' }
+        ];
+
+        let currentSecond = 0;
+        let updateInterval = null;
+
+        function getTimezoneOffset(date, timezone) {
+            const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+            const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+            return (tzDate - utcDate) / (60 * 60 * 1000);
+        }
+
+        function formatTimezoneOffset(offset) {
+            const sign = offset >= 0 ? '+' : '';
+            return `UTC${sign}${offset}`;
+        }
+
+        function init() {
+            const now = new Date();
+            
+            const yearSelect = document.getElementById('year');
+            for (let y = now.getFullYear() - 1; y <= now.getFullYear() + 2; y++) {
+                yearSelect.add(new Option(y, y));
+            }
+            yearSelect.value = now.getFullYear();
+            
+            const monthSelect = document.getElementById('month');
+            for (let m = 1; m <= 12; m++) {
+                monthSelect.add(new Option(m.toString().padStart(2, '0'), m));
+            }
+            monthSelect.value = now.getMonth() + 1;
+            
+            updateDays();
+            
+            const hourSelect = document.getElementById('hour');
+            for (let h = 0; h < 24; h++) {
+                hourSelect.add(new Option(h.toString().padStart(2, '0'), h));
+            }
+            hourSelect.value = now.getHours();
+            
+            const minuteSelect = document.getElementById('minute');
+            for (let m = 0; m < 60; m++) {
+                minuteSelect.add(new Option(m.toString().padStart(2, '0'), m));
+            }
+            minuteSelect.value = Math.floor(now.getMinutes() / 5) * 5;
+            
+            const secondSelect = document.getElementById('second');
+            for (let s = 0; s < 60; s++) {
+                secondSelect.add(new Option(s.toString().padStart(2, '0'), s));
+            }
+            secondSelect.value = 0;
+            
+            const tzSelect = document.getElementById('baseTimezone');
+            timezones.forEach(tz => {
+                tzSelect.add(new Option(tz.name, tz.id));
+            });
+            tzSelect.value = 'Asia/Shanghai';
+            
+            initTimezoneCards();
+            
+            yearSelect.addEventListener('change', updateAll);
+            monthSelect.addEventListener('change', updateDays);
+            document.getElementById('day').addEventListener('change', updateAll);
+            document.getElementById('hour').addEventListener('change', updateAll);
+            document.getElementById('minute').addEventListener('change', updateAll);
+            document.getElementById('second').addEventListener('change', updateAll);
+            document.getElementById('baseTimezone').addEventListener('change', updateAll);
+            
+            updateAll();
+            
+            // Live update every second
+            updateInterval = setInterval(() => {
+                const sec = new Date().getSeconds();
+                if (sec !== currentSecond) {
+                    currentSecond = sec;
+                    updateAll();
+                }
+            }, 1000);
+            
+            // Show install hint
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                document.getElementById('installHint').style.display = 'block';
+            }
+            
+            // Register Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+        }
+        
+        function updateDays() {
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+            const daySelect = document.getElementById('day');
+            const currentDay = daySelect.value;
+            
+            daySelect.innerHTML = '';
+            const days = new Date(year, month, 0).getDate();
+            
+            for (let d = 1; d <= days; d++) {
+                daySelect.add(new Option(d.toString().padStart(2, '0'), d));
+            }
+            
+            if (currentDay && parseInt(currentDay) <= days) {
+                daySelect.value = currentDay;
+            } else {
+                daySelect.value = days;
+            }
+        }
+        
+        function initTimezoneCards() {
+            const container = document.getElementById('timeZones');
+            container.innerHTML = '';
+            
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            
+            for (let i = 0; i < 8; i++) {
+                const card = document.createElement('div');
+                card.className = 'tz-card';
+                card.innerHTML = `
+                    <div class="tz-card-top">
+                        <div class="tz-number">${String(i + 1).padStart(2, '0')}</div>
+                        <div class="tz-selector">
+                            <select class="tz-select" data-index="${i}">
+                                ${timezones.map(tz => `<option value="${tz.id}">${tz.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="tz-offset" data-offset="${i}">--</div>
+                    </div>
+                    <div class="tz-card-bottom">
+                        <div class="time-display">
+                            <span class="time-main" data-time="${i}">--:--</span>
+                            <span class="time-seconds" data-seconds="${i}">--</span>
+                        </div>
+                        <div class="time-meta">
+                            <span class="time-date" data-date="${i}">--/--</span>
+                            <span class="time-day" data-day="${i}">---</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+            
+            document.querySelectorAll('.tz-select').forEach(select => {
+                select.addEventListener('change', updateAll);
+            });
+            
+            loadPresets();
+        }
+        
+        function loadPresets() {
+            const presets = [
+                'America/Chicago',   // 罗克福德
+                'Asia/Shanghai',     // 北京
+                'America/Los_Angeles', // 洛杉矶
+                'America/Chicago',   // 休斯顿
+                'America/Monterrey', // 蒙特雷
+                'Europe/Madrid',     // 马德里
+                'Europe/London',     // 加的夫
+                'America/Sao_Paulo'  // 圣保罗
+            ];
+            document.querySelectorAll('.tz-select').forEach((select, i) => {
+                if (presets[i]) {
+                    select.value = presets[i];
+                }
+            });
+            updateAll();
+        }
+        
+        function formatDateTime(date) {
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            return {
+                hours: date.getHours().toString().padStart(2, '0'),
+                minutes: date.getMinutes().toString().padStart(2, '0'),
+                seconds: date.getSeconds().toString().padStart(2, '0'),
+                date: `${date.getMonth() + 1}/${date.getDate()}`,
+                day: days[date.getDay()]
+            };
+        }
+        
+        function updateAll() {
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+            const day = parseInt(document.getElementById('day').value);
+            const hour = parseInt(document.getElementById('hour').value);
+            const minute = parseInt(document.getElementById('minute').value);
+            const second = parseInt(document.getElementById('second').value);
+            const baseTz = document.getElementById('baseTimezone').value;
+            
+            const userDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+            const baseOffset = getTimezoneOffset(userDate, baseTz);
+            const utcDate = new Date(userDate.getTime() - baseOffset * 60 * 60 * 1000);
+            
+            // Update UTC display
+            const utcStr = `${utcDate.getUTCHours().toString().padStart(2, '0')}:${utcDate.getUTCMinutes().toString().padStart(2, '0')}`;
+            document.querySelector('#utcDisplay span').textContent = utcStr;
+            
+            document.querySelectorAll('.tz-card').forEach((card, i) => {
+                const tzSelect = card.querySelector('.tz-select');
+                const tzId = tzSelect.value;
+                const tzOffset = getTimezoneOffset(utcDate, tzId);
+                
+                const localDate = new Date(utcDate.getTime() + tzOffset * 60 * 60 * 1000);
+                const formatted = formatDateTime(localDate);
+                
+                card.querySelector(`[data-time="${i}"]`).textContent = `${formatted.hours}:${formatted.minutes}`;
+                card.querySelector(`[data-seconds="${i}"]`).textContent = `:${formatted.seconds}`;
+                card.querySelector(`[data-date="${i}"]`).textContent = formatted.date;
+                card.querySelector(`[data-day="${i}"]`).textContent = formatted.day;
+                card.querySelector(`[data-offset="${i}"]`).textContent = formatTimezoneOffset(tzOffset);
+            });
+        }
+        
+        init();
+    </script>
+</body>
+</html>
