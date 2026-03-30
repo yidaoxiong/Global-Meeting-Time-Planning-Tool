@@ -102,7 +102,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            padding: 8px 12px;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
             backdrop-filter: blur(10px);
@@ -159,13 +159,13 @@
         .theme-icon { width: 18px; height: 18px; transition: transform 0.3s; }
         .theme-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); }
 
-        .container { max-width: 540px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+        .container { max-width: 540px; margin: 0 auto; padding: 8px; position: relative; z-index: 1; }
 
-        .header { text-align: center; padding: 24px 0 28px; position: relative; }
+        .header { text-align: center; padding: 12px 0 14px; position: relative; }
 
         .header-icon {
-            font-size: 42px;
-            margin-bottom: 12px;
+            font-size: 28px;
+            margin-bottom: 6px;
             display: block;
             filter: drop-shadow(0 0 20px var(--amber-glow));
             transition: filter var(--transition-duration);
@@ -176,12 +176,12 @@
 
         .header h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 900;
-            letter-spacing: 6px;
+            letter-spacing: 4px;
             text-transform: uppercase;
             color: var(--text-primary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             transition: color var(--transition-duration);
         }
 
@@ -212,7 +212,7 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
             overflow: hidden;
             transition: all var(--transition-duration);
             box-shadow: 0 4px 24px rgba(0,0,0,0.1);
@@ -222,11 +222,11 @@
 
         .panel-header {
             background: var(--bg-elevated);
-            padding: 14px 18px;
+            padding: 8px 12px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             transition: background var(--transition-duration), border-color var(--transition-duration);
         }
 
@@ -249,7 +249,7 @@
             transition: color var(--transition-duration);
         }
 
-        .panel-content { padding: 18px; }
+        .panel-content { padding: 10px; }
 
         .time-selector {
             display: grid;
@@ -258,13 +258,13 @@
             margin-bottom: 16px;
         }
 
-        .selector-group { display: flex; flex-direction: column; gap: 6px; }
+        .selector-group { display: flex; flex-direction: column; gap: 3px; }
         .selector-group.full-width { grid-column: span 3; }
 
         .selector-group label {
             font-size: 9px;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
             color: var(--text-dim);
             padding-left: 4px;
@@ -272,13 +272,13 @@
         }
 
         select {
-            padding: 12px 10px;
-            border-radius: 6px;
+            padding: 8px 6px;
+            border-radius: 4px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: var(--text-primary);
             font-family: 'Space Mono', monospace;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
             -webkit-appearance: none;
@@ -322,12 +322,12 @@
         .preset-btn:hover::before { left: 100%; }
         :root.day-mode .preset-btn:hover { border-color: var(--amber-glow); box-shadow: 0 2px 16px rgba(196,92,0,0.2); }
 
-        .timezone-cards { display: flex; flex-direction: column; gap: 10px; }
+        .timezone-cards { display: flex; flex-direction: column; gap: 6px; }
 
         .tz-card {
             background: var(--bg-elevated);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
             transition: all 0.3s;
         }
@@ -344,18 +344,18 @@
         }
 
         .tz-number {
-            width: 42px;
-            min-width: 42px;
+            width: 32px;
+            min-width: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: linear-gradient(180deg, rgba(0,229,255,0.12), rgba(0,229,255,0.04));
             border-right: 1px solid var(--border-color);
             font-family: 'Orbitron', sans-serif;
-            font-size: 15px;
+            font-size: 12px;
             font-weight: 900;
             color: var(--cyan-glow);
-            text-shadow: 0 0 10px var(--cyan-glow);
+            text-shadow: 0 0 8px var(--cyan-glow);
             transition: all var(--transition-duration);
         }
 
@@ -365,12 +365,12 @@
             text-shadow: none;
         }
 
-        .tz-selector { flex: 1; padding: 8px 12px; display: flex; align-items: center; }
+        .tz-selector { flex: 1; padding: 6px 8px; display: flex; align-items: center; }
 
         .tz-selector select {
             width: 100%;
-            padding: 8px 10px;
-            font-size: 12px;
+            padding: 4px 6px;
+            font-size: 11px;
             background: transparent;
             border: none;
             border-bottom: 1px solid transparent;
@@ -382,8 +382,8 @@
         .tz-selector select:focus { border-bottom-color: var(--cyan-glow); box-shadow: none; }
 
         .tz-offset {
-            padding: 8px 14px;
-            font-size: 10px;
+            padding: 6px 10px;
+            font-size: 9px;
             font-weight: 700;
             color: var(--text-dim);
             display: flex;
@@ -396,7 +396,7 @@
         .tz-card-bottom {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
+            padding: 8px 12px;
             background: linear-gradient(180deg, var(--bg-card), var(--bg-elevated));
             transition: background var(--transition-duration);
         }
@@ -405,23 +405,23 @@
 
         .time-main {
             font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 900;
             color: var(--amber-glow);
-            text-shadow: 0 0 20px var(--amber-glow), 0 0 40px rgba(255,171,0,0.3);
-            letter-spacing: 3px;
+            text-shadow: 0 0 12px var(--amber-glow), 0 0 24px rgba(255,171,0,0.3);
+            letter-spacing: 2px;
             transition: color var(--transition-duration), text-shadow var(--transition-duration);
         }
 
         :root.day-mode .time-main { color: var(--amber-soft); text-shadow: none; }
 
-        .time-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-        .time-date { font-size: 13px; font-weight: 700; color: var(--text-primary); transition: color var(--transition-duration); }
-        .time-day { font-size: 11px; font-weight: 700; color: var(--green-glow); letter-spacing: 2px; transition: color var(--transition-duration); }
+        .time-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .time-date { font-size: 11px; font-weight: 700; color: var(--text-primary); transition: color var(--transition-duration); }
+        .time-day { font-size: 10px; font-weight: 700; color: var(--green-glow); letter-spacing: 1px; transition: color var(--transition-duration); }
 
         .status-bar {
-            margin-top: 20px;
-            padding: 14px 18px;
+            margin-top: 12px;
+            padding: 10px 14px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -435,8 +435,8 @@
         .status-item span { color: var(--green-glow); font-weight: 700; transition: color var(--transition-duration); }
 
         .footer {
-            margin-top: 32px;
-            padding: 24px 0;
+            margin-top: 16px;
+            padding: 16px 0;
             text-align: center;
             border-top: 1px solid var(--border-color);
             transition: border-color var(--transition-duration);
@@ -461,17 +461,18 @@
         }
 
         @media (max-width: 400px) {
-            .time-main { font-size: 24px; }
-            .tz-number { width: 36px; min-width: 36px; font-size: 13px; }
-            .header h1 { font-size: 15px; letter-spacing: 4px; }
-            .time-selector { grid-template-columns: repeat(2, 1fr); }
-            .selector-group.full-width { grid-column: span 2; }
+            .time-main { font-size: 18px; }
+            .tz-number { width: 28px; min-width: 28px; font-size: 11px; }
+            .header h1 { font-size: 12px; letter-spacing: 3px; }
+            .header-icon { font-size: 22px; }
+            .time-selector { grid-template-columns: repeat(3, 1fr); }
+            .selector-group.full-width { grid-column: span 3; }
         }
 
         @media (min-width: 500px) {
-            .container { padding: 24px; }
-            .header h1 { font-size: 20px; letter-spacing: 8px; }
-            .time-main { font-size: 34px; }
+            .container { padding: 16px; }
+            .header h1 { font-size: 16px; letter-spacing: 5px; }
+            .time-main { font-size: 24px; }
         }
     </style>
 </head>
@@ -578,28 +579,44 @@
 
         const locationNames = {
             zh: {
-                'Asia/Shanghai': '中国 · 北京', 'America/Los_Angeles': '美国 · 洛杉矶',
-                'America/Chicago_Houston': '美国 · 休斯顿', 'America/Chicago_Rockford': '美国 · 罗克福德',
-                'America/Monterrey': '墨西哥 · 蒙特雷', 'America/Sao_Paulo': '巴西 · 圣保罗',
-                'Europe/Madrid': '西班牙 · 马德里', 'Europe/London': '英国 · 加的夫'
+                'Asia/Shanghai': '中国 · 北京',
+                'America/Los_Angeles': '美国 · 洛杉矶',
+                'America/Chicago_Houston': '美国 · 休斯顿',
+                'America/Chicago_Rockford': '美国 · 罗克福德',
+                'America/Monterrey': '墨西哥 · 蒙特雷',
+                'America/Sao_Paulo': '巴西 · 圣保罗',
+                'Europe/Madrid': '西班牙 · 马德里',
+                'Europe/London': '英国 · 加的夫'
             },
             en: {
-                'Asia/Shanghai': 'China · Beijing', 'America/Los_Angeles': 'USA · Los Angeles',
-                'America/Chicago_Houston': 'USA · Houston', 'America/Chicago_Rockford': 'USA · Rockford',
-                'America/Monterrey': 'Mexico · Monterrey', 'America/Sao_Paulo': 'Brazil · São Paulo',
-                'Europe/Madrid': 'Spain · Madrid', 'Europe/London': 'UK · Cardiff'
+                'Asia/Shanghai': 'China · Beijing',
+                'America/Los_Angeles': 'USA · Los Angeles',
+                'America/Chicago_Houston': 'USA · Houston',
+                'America/Chicago_Rockford': 'USA · Rockford',
+                'America/Monterrey': 'Mexico · Monterrey',
+                'America/Sao_Paulo': 'Brazil · São Paulo',
+                'Europe/Madrid': 'Spain · Madrid',
+                'Europe/London': 'UK · Cardiff'
             },
             es: {
-                'Asia/Shanghai': 'China · Pekin', 'America/Los_Angeles': 'EEUU · Los Ángeles',
-                'America/Chicago_Houston': 'EEUU · Houston', 'America/Chicago_Rockford': 'EEUU · Rockford',
-                'America/Monterrey': 'México · Monterrey', 'America/Sao_Paulo': 'Brasil · São Paulo',
-                'Europe/Madrid': 'España · Madrid', 'Europe/London': 'Reino Unido · Cardiff'
+                'Asia/Shanghai': 'China · Pekin',
+                'America/Los_Angeles': 'EEUU · Los Ángeles',
+                'America/Chicago_Houston': 'EEUU · Houston',
+                'America/Chicago_Rockford': 'EEUU · Rockford',
+                'America/Monterrey': 'México · Monterrey',
+                'America/Sao_Paulo': 'Brasil · São Paulo',
+                'Europe/Madrid': 'España · Madrid',
+                'Europe/London': 'Reino Unido · Cardiff'
             },
             pt: {
-                'Asia/Shanghai': 'China · Pequim', 'America/Los_Angeles': 'EUA · Los Angeles',
-                'America/Chicago_Houston': 'EUA · Houston', 'America/Chicago_Rockford': 'EUA · Rockford',
-                'America/Monterrey': 'México · Monterrey', 'America/Sao_Paulo': 'Brasil · São Paulo',
-                'Europe/Madrid': 'Espanha · Madri', 'Europe/London': 'Reino Unido · Cardiff'
+                'Asia/Shanghai': 'China · Pequim',
+                'America/Los_Angeles': 'EUA · Los Angeles',
+                'America/Chicago_Houston': 'EUA · Houston',
+                'America/Chicago_Rockford': 'EUA · Rockford',
+                'America/Monterrey': 'México · Monterrey',
+                'America/Sao_Paulo': 'Brasil · São Paulo',
+                'Europe/Madrid': 'Espanha · Madri',
+                'Europe/London': 'Reino Unido · Cardiff'
             }
         };
 
@@ -614,7 +631,16 @@
             { id: 'Europe/London', tz: 'Europe/London' }
         ];
 
-        const defaultDestinations = ['Asia/Shanghai', 'America/Los_Angeles', 'America/Chicago_Houston', 'America/Monterrey', 'Europe/Madrid'];
+        const defaultDestinations = [
+            'Asia/Shanghai',
+            'America/Los_Angeles',
+            'America/Chicago_Houston',
+            'America/Chicago_Rockford',
+            'America/Monterrey',
+            'Europe/Madrid',
+            'Europe/London',
+            'America/Sao_Paulo'
+        ];
 
         let currentLang = 'zh';
         let manualTheme = null;
@@ -769,7 +795,7 @@
         function initTimezoneCards() {
             const container = document.getElementById('timeZones');
             container.innerHTML = '';
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 8; i++) {
                 const card = document.createElement('div');
                 card.className = 'tz-card';
                 card.innerHTML = '<div class="tz-card-top"><div class="tz-number">' + String(i + 1).padStart(2, '0') + '</div><div class="tz-selector"><select class="tz-select" data-index="' + i + '"></select></div><div class="tz-offset" data-offset="' + i + '">--</div></div><div class="tz-card-bottom"><div class="time-display"><span class="time-main" data-time="' + i + '">--:--</span></div><div class="time-meta"><span class="time-date" data-date="' + i + '">--/--</span><span class="time-day" data-day="' + i + '">---</span></div></div>';
