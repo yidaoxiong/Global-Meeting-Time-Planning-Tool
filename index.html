@@ -6,252 +6,302 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0e14">
-    <title>✈ FLIGHT TIMETABLE — Meeting Sync</title>
+    <title>🤝 MEETING SYNC — Timezone Coordinator</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0e14;
             --bg-secondary: #0d1219;
             --bg-card: #111921;
             --bg-input: #0a0e14;
+            --bg-elevated: #151d27;
             --cyan-glow: #00e5ff;
             --cyan-dim: #007a8a;
+            --cyan-muted: #004a55;
             --amber-glow: #ffab00;
             --amber-dim: #8a5a00;
+            --amber-soft: #cc8800;
             --green-glow: #00ff9d;
             --green-dim: #008a55;
             --text-primary: #e0e6ed;
             --text-secondary: #6b7c8f;
             --text-dim: #3d4a5c;
             --border-color: #1e2a38;
+            --border-glow: rgba(0, 229, 255, 0.3);
             --scanline-opacity: 0.03;
+            --grid-opacity: 0.02;
+            --transition-duration: 0.6s;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root.day-mode {
+            --bg-primary: #faf6f0;
+            --bg-secondary: #f5efe6;
+            --bg-card: #ffffff;
+            --bg-input: #f0ebe3;
+            --bg-elevated: #fffcf7;
+            --cyan-glow: #d4600a;
+            --cyan-dim: #a84808;
+            --cyan-muted: #d4a088;
+            --amber-glow: #c45c00;
+            --amber-dim: #8a5a00;
+            --amber-soft: #e07010;
+            --green-glow: #1a8a4a;
+            --green-dim: #2a6a4a;
+            --text-primary: #1a1a2e;
+            --text-secondary: #5a5a6e;
+            --text-dim: #9a9aae;
+            --border-color: #e0d8cc;
+            --border-glow: rgba(196, 92, 0, 0.2);
+            --scanline-opacity: 0;
+            --grid-opacity: 0.03;
         }
 
-        html, body {
-            height: 100%;
-            overflow-x: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow-x: hidden; }
 
         body {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Space Mono', 'Courier New', monospace;
             background: var(--bg-primary);
             min-height: 100vh;
             color: var(--text-primary);
             -webkit-user-select: none;
             user-select: none;
             position: relative;
+            transition: background var(--transition-duration), color var(--transition-duration);
         }
 
-        /* Scanline overlay */
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 0, 0, var(--scanline-opacity)) 2px,
-                rgba(0, 0, 0, var(--scanline-opacity)) 4px
-            );
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,var(--scanline-opacity)) 2px, rgba(0,0,0,var(--scanline-opacity)) 4px);
             pointer-events: none;
             z-index: 1000;
+            transition: opacity var(--transition-duration);
         }
 
-        /* Grid background */
         body::after {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(0,229,255,var(--grid-opacity)) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,var(--grid-opacity)) 1px, transparent 1px);
             background-size: 40px 40px;
             pointer-events: none;
             z-index: -1;
+            transition: opacity var(--transition-duration);
         }
 
-        .container {
-            max-width: 520px;
-            margin: 0 auto;
-            padding: 12px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            padding: 16px 0 20px;
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            position: relative;
+            backdrop-filter: blur(10px);
+            transition: background var(--transition-duration), border-color var(--transition-duration);
         }
 
-        .header::before {
-            content: '✈';
-            display: block;
-            font-size: 28px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 0 10px var(--cyan-glow));
+        .lang-switcher {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-input);
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
+
+        .lang-btn {
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .lang-btn:hover { color: var(--text-primary); }
+
+        .lang-btn.active {
+            background: var(--cyan-glow);
+            color: var(--bg-primary);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+        }
+
+        :root.day-mode .lang-btn.active { box-shadow: 0 2px 8px rgba(196, 92, 0, 0.3); }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover { border-color: var(--cyan-glow); }
+
+        .theme-icon { width: 18px; height: 18px; transition: transform 0.3s; }
+        .theme-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); }
+
+        .container { max-width: 540px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+
+        .header { text-align: center; padding: 24px 0 28px; position: relative; }
+
+        .header-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+            display: block;
+            filter: drop-shadow(0 0 20px var(--amber-glow));
+            transition: filter var(--transition-duration);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
         .header h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 4px;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 6px;
             text-transform: uppercase;
-            color: var(--cyan-glow);
-            text-shadow: 0 0 20px var(--cyan-glow), 0 0 40px rgba(0, 229, 255, 0.3);
-            margin-bottom: 4px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            transition: color var(--transition-duration);
         }
 
         .header .subtitle {
-            font-size: 9px;
-            letter-spacing: 3px;
+            font-size: 10px;
+            letter-spacing: 4px;
             color: var(--text-dim);
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .blink-dot {
-            display: inline-block;
+        .status-dot {
             width: 6px;
             height: 6px;
             background: var(--green-glow);
             border-radius: 50%;
-            margin-left: 8px;
             animation: pulse 2s ease-in-out infinite;
             box-shadow: 0 0 8px var(--green-glow);
+            transition: background var(--transition-duration), box-shadow var(--transition-duration);
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* Base Time Panel */
         .panel {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 8px;
             margin-bottom: 16px;
             overflow: hidden;
+            transition: all var(--transition-duration);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
         }
 
+        :root.day-mode .panel { box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
+
         .panel-header {
-            background: linear-gradient(90deg, var(--bg-secondary), var(--bg-card));
-            padding: 10px 14px;
+            background: var(--bg-elevated);
+            padding: 14px 18px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            transition: background var(--transition-duration), border-color var(--transition-duration);
         }
 
         .panel-header .indicator {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background: var(--cyan-glow);
-            border-radius: 2px;
-            box-shadow: 0 0 8px var(--cyan-glow);
+            border-radius: 3px;
+            box-shadow: 0 0 12px var(--cyan-glow);
+            transition: background var(--transition-duration), box-shadow var(--transition-duration);
         }
 
         .panel-header h2 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 2px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--cyan-glow);
+            transition: color var(--transition-duration);
         }
 
-        .panel-content {
-            padding: 14px;
-        }
+        .panel-content { padding: 18px; }
 
-        /* Time Selector Grid */
         .time-selector {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .selector-row {
-            display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
-        .selector-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        .selector-group { display: flex; flex-direction: column; gap: 6px; }
+        .selector-group.full-width { grid-column: span 3; }
 
         .selector-group label {
-            font-size: 8px;
-            letter-spacing: 1px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--text-dim);
-            padding-left: 2px;
+            padding-left: 4px;
+            transition: color var(--transition-duration);
         }
 
         select {
-            padding: 10px 6px;
-            border-radius: 3px;
+            padding: 12px 10px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            font-weight: 500;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
             -webkit-appearance: none;
             appearance: none;
             text-align: center;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
         }
 
-        select:focus {
-            outline: none;
-            border-color: var(--cyan-glow);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
-        }
+        select:focus { outline: none; border-color: var(--cyan-glow); box-shadow: 0 0 0 3px rgba(0,229,255,0.15); }
+        :root.day-mode select:focus { box-shadow: 0 0 0 3px rgba(196,92,0,0.15); }
+        select option { background: var(--bg-card); color: var(--text-primary); }
 
-        select option {
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-
-        /* Preset Button */
         .preset-btn {
             width: 100%;
-            padding: 12px;
-            background: transparent;
-            border: 1px solid var(--cyan-dim);
-            border-radius: 3px;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             color: var(--cyan-glow);
             font-family: 'Orbitron', sans-serif;
             font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 2px;
+            font-weight: 700;
+            letter-spacing: 3px;
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.3s;
@@ -262,262 +312,217 @@
         .preset-btn::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.1), transparent);
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,229,255,0.08), transparent);
             transition: left 0.5s;
         }
 
-        .preset-btn:hover {
-            border-color: var(--cyan-glow);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.05);
-        }
+        .preset-btn:hover { border-color: var(--cyan-glow); box-shadow: 0 0 20px rgba(0,229,255,0.15); }
+        .preset-btn:hover::before { left: 100%; }
+        :root.day-mode .preset-btn:hover { border-color: var(--amber-glow); box-shadow: 0 2px 16px rgba(196,92,0,0.2); }
 
-        .preset-btn:hover::before {
-            left: 100%;
-        }
-
-        /* Timezone Cards - Departure Board Style */
-        .timezone-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .timezone-cards { display: flex; flex-direction: column; gap: 10px; }
 
         .tz-card {
-            background: var(--bg-card);
+            background: var(--bg-elevated);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 8px;
             overflow: hidden;
             transition: all 0.3s;
         }
 
-        .tz-card:hover {
-            border-color: var(--cyan-dim);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
-        }
+        .tz-card:hover { border-color: var(--cyan-muted); transform: translateX(4px); }
+        :root.day-mode .tz-card:hover { border-color: var(--amber-soft); transform: translateX(2px); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
 
         .tz-card-top {
             display: flex;
             align-items: stretch;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
+            transition: background var(--transition-duration), border-color var(--transition-duration);
         }
 
         .tz-number {
-            width: 36px;
-            min-width: 36px;
+            width: 42px;
+            min-width: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(180deg, rgba(0, 229, 255, 0.15), rgba(0, 229, 255, 0.05));
+            background: linear-gradient(180deg, rgba(0,229,255,0.12), rgba(0,229,255,0.04));
             border-right: 1px solid var(--border-color);
             font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 900;
             color: var(--cyan-glow);
             text-shadow: 0 0 10px var(--cyan-glow);
+            transition: all var(--transition-duration);
         }
 
-        .tz-selector {
-            flex: 1;
-            padding: 6px 10px;
-            display: flex;
-            align-items: center;
+        :root.day-mode .tz-number {
+            background: linear-gradient(180deg, rgba(196,92,0,0.1), rgba(196,92,0,0.04));
+            color: var(--amber-glow);
+            text-shadow: none;
         }
+
+        .tz-selector { flex: 1; padding: 8px 12px; display: flex; align-items: center; }
 
         .tz-selector select {
             width: 100%;
-            padding: 6px 8px;
-            font-size: 11px;
+            padding: 8px 10px;
+            font-size: 12px;
             background: transparent;
             border: none;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid transparent;
             border-radius: 0;
             text-align: left;
+            transition: border-color 0.2s;
         }
 
-        .tz-selector select:focus {
-            box-shadow: none;
-            border-color: var(--cyan-glow);
-        }
+        .tz-selector select:focus { border-bottom-color: var(--cyan-glow); box-shadow: none; }
 
         .tz-offset {
-            padding: 6px 12px;
-            font-size: 9px;
+            padding: 8px 14px;
+            font-size: 10px;
+            font-weight: 700;
             color: var(--text-dim);
             display: flex;
             align-items: center;
             letter-spacing: 1px;
+            border-left: 1px solid var(--border-color);
+            transition: color var(--transition-duration), border-color var(--transition-duration);
         }
 
         .tz-card-bottom {
             display: flex;
             align-items: center;
-            padding: 10px 12px;
-            background: linear-gradient(180deg, var(--bg-card), rgba(0, 0, 0, 0.3));
+            padding: 14px 16px;
+            background: linear-gradient(180deg, var(--bg-card), var(--bg-elevated));
+            transition: background var(--transition-duration);
         }
 
-        .time-display {
-            flex: 1;
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
+        .time-display { flex: 1; display: flex; align-items: baseline; gap: 6px; }
 
         .time-main {
             font-family: 'Orbitron', sans-serif;
-            font-size: 26px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 900;
             color: var(--amber-glow);
-            text-shadow: 0 0 15px var(--amber-glow), 0 0 30px rgba(255, 171, 0, 0.4);
-            letter-spacing: 2px;
+            text-shadow: 0 0 20px var(--amber-glow), 0 0 40px rgba(255,171,0,0.3);
+            letter-spacing: 3px;
+            transition: color var(--transition-duration), text-shadow var(--transition-duration);
         }
 
-        .time-seconds {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 12px;
-            font-weight: 400;
-            color: var(--amber-dim);
-            letter-spacing: 1px;
-        }
+        :root.day-mode .time-main { color: var(--amber-soft); text-shadow: none; }
 
-        .time-meta {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
-        }
+        .time-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+        .time-date { font-size: 13px; font-weight: 700; color: var(--text-primary); transition: color var(--transition-duration); }
+        .time-day { font-size: 11px; font-weight: 700; color: var(--green-glow); letter-spacing: 2px; transition: color var(--transition-duration); }
 
-        .time-date {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .time-day {
-            font-size: 10px;
-            color: var(--green-glow);
-            letter-spacing: 1px;
-        }
-
-        /* Status bar */
         .status-bar {
             margin-top: 20px;
-            padding: 12px;
+            padding: 14px 18px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all var(--transition-duration);
         }
 
-        .status-item {
-            font-size: 9px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--text-dim);
+        .status-item { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); transition: color var(--transition-duration); }
+        .status-item span { color: var(--green-glow); font-weight: 700; transition: color var(--transition-duration); }
+
+        .footer {
+            margin-top: 32px;
+            padding: 24px 0;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            transition: border-color var(--transition-duration);
         }
 
-        .status-item span {
-            color: var(--green-glow);
-        }
+        .footer-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
+        .footer-logo { width: 32px; height: 32px; }
+        .footer-text { font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-secondary); transition: color var(--transition-duration); }
+        .footer-tagline { font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
 
         .install-hint {
             text-align: center;
             font-size: 9px;
             color: var(--text-dim);
             margin-top: 16px;
-            padding: 10px;
-            background: rgba(0, 229, 255, 0.03);
+            padding: 12px;
+            background: rgba(0,229,255,0.03);
             border: 1px dashed var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             letter-spacing: 1px;
+            transition: all var(--transition-duration);
         }
 
-        /* Responsive */
-        @media (max-width: 380px) {
-            .time-main {
-                font-size: 22px;
-            }
-            
-            .tz-number {
-                width: 30px;
-                min-width: 30px;
-                font-size: 12px;
-            }
+        @media (max-width: 400px) {
+            .time-main { font-size: 24px; }
+            .tz-number { width: 36px; min-width: 36px; font-size: 13px; }
+            .header h1 { font-size: 15px; letter-spacing: 4px; }
+            .time-selector { grid-template-columns: repeat(2, 1fr); }
+            .selector-group.full-width { grid-column: span 2; }
         }
 
-        @media (min-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 16px;
-                letter-spacing: 6px;
-            }
-            
-            .time-main {
-                font-size: 32px;
-            }
+        @media (min-width: 500px) {
+            .container { padding: 24px; }
+            .header h1 { font-size: 20px; letter-spacing: 8px; }
+            .time-main { font-size: 34px; }
         }
     </style>
 </head>
 <body>
+    <div class="top-bar">
+        <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="zh">中文</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="es">ES</button>
+            <button class="lang-btn" data-lang="pt">PT</button>
+        </div>
+        <div class="theme-toggle" id="themeToggle">
+            <svg class="theme-icon" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <span class="theme-label" id="themeLabel">AUTO</span>
+        </div>
+    </div>
+
     <div class="container">
         <header class="header">
-            <h1>Meeting Sync<span class="blink-dot"></span></h1>
-            <div class="subtitle">Timezone Coordinator</div>
+            <span class="header-icon">🤝</span>
+            <h1 id="headerTitle">Meeting Sync</h1>
+            <div class="subtitle">
+                <span id="headerSubtitle">Timezone Coordinator</span>
+                <span class="status-dot"></span>
+            </div>
         </header>
         
         <div class="panel">
             <div class="panel-header">
                 <div class="indicator"></div>
-                <h2>Base Time</h2>
+                <h2 id="panelBaseTime">Base Time</h2>
             </div>
             <div class="panel-content">
                 <div class="time-selector">
-                    <div class="selector-group">
-                        <label>Year</label>
-                        <select id="year"></select>
-                    </div>
-                    <div class="selector-group">
-                        <label>Month</label>
-                        <select id="month"></select>
-                    </div>
-                    <div class="selector-group">
-                        <label>Day</label>
-                        <select id="day"></select>
-                    </div>
-                    <div class="selector-group">
-                        <label>Hour</label>
-                        <select id="hour"></select>
-                    </div>
-                    <div class="selector-group">
-                        <label>Min</label>
-                        <select id="minute"></select>
-                    </div>
-                    <div class="selector-group">
-                        <label>Second</label>
-                        <select id="second"></select>
-                    </div>
-                    <div class="selector-group" style="grid-column: span 4;">
-                        <label>Timezone</label>
-                        <select id="baseTimezone"></select>
-                    </div>
+                    <div class="selector-group"><label id="lblYear">Year</label><select id="year"></select></div>
+                    <div class="selector-group"><label id="lblMonth">Month</label><select id="month"></select></div>
+                    <div class="selector-group"><label id="lblDay">Day</label><select id="day"></select></div>
+                    <div class="selector-group"><label id="lblHour">Hour</label><select id="hour"></select></div>
+                    <div class="selector-group"><label id="lblMinute">Min</label><select id="minute"></select></div>
+                    <div class="selector-group full-width"><label id="lblTimezone">Timezone</label><select id="baseTimezone"></select></div>
                 </div>
-                <button class="preset-btn" onclick="loadPresets()">Load Preset Routes</button>
+                <button class="preset-btn" id="presetBtn" onclick="loadPresets()">Load Preset Routes</button>
             </div>
         </div>
         
         <div class="panel">
             <div class="panel-header">
                 <div class="indicator"></div>
-                <h2>Destination Times</h2>
+                <h2 id="panelDestTime">Destination Times</h2>
             </div>
             <div class="panel-content">
                 <div class="timezone-cards" id="timeZones"></div>
@@ -525,29 +530,148 @@
         </div>
         
         <div class="status-bar">
-            <div class="status-item">System: <span>Online</span></div>
+            <div class="status-item" id="statusSystem">System: <span>Online</span></div>
             <div class="status-item" id="utcDisplay">UTC: <span>--:--</span></div>
         </div>
+
+        <footer class="footer">
+            <div class="footer-brand">
+                <svg class="footer-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="30" height="30" rx="6" fill="var(--bg-input)" stroke="var(--border-color)" stroke-width="1.5"/>
+                    <path d="M8 24L24 8" stroke="var(--cyan-glow)" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M8 24L24 8" stroke="var(--amber-glow)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+                    <path d="M10 10V22M10 10H18C20.2 10 22 11.8 22 14C22 16.2 20.2 18 18 18H10" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="24" cy="24" r="2" fill="var(--green-glow)"/>
+                    <circle cx="8" cy="8" r="1.5" fill="var(--cyan-glow)" opacity="0.7"/>
+                </svg>
+                <span class="footer-text">by SlashBro</span>
+            </div>
+            <div class="footer-tagline" id="footerTagline">Precision Time Coordination</div>
+        </footer>
         
-        <div class="install-hint" id="installHint" style="display:none">
-            ↑ Tap Safari Share → Add to Home Screen
-        </div>
+        <div class="install-hint" id="installHint" style="display:none">↑ Safari Share → Add to Home Screen</div>
     </div>
 
     <script>
-        const timezones = [
-            { id: 'Asia/Shanghai', name: '中国 · 北京', country: 'CN' },
-            { id: 'America/Los_Angeles', name: '美国 · 洛杉矶', country: 'US' },
-            { id: 'America/Chicago', name: '美国 · 休斯顿', country: 'US' },
-            { id: 'America/Monterrey', name: '墨西哥 · 蒙特雷', country: 'MX' },
-            { id: 'America/Chicago', name: '美国 · 罗克福德', country: 'US' },
-            { id: 'America/Sao_Paulo', name: '巴西 · 圣保罗', country: 'BR' },
-            { id: 'Europe/Madrid', name: '西班牙 · 马德里', country: 'ES' },
-            { id: 'Europe/London', name: '英国 · 加的夫', country: 'GB' }
+        const translations = {
+            zh: {
+                headerTitle: '会议同步', headerSubtitle: '时区协调器', panelBaseTime: '基准时间', panelDestTime: '目标时间',
+                lblYear: '年', lblMonth: '月', lblDay: '日', lblHour: '时', lblMinute: '分', lblTimezone: '时区',
+                presetBtn: '加载预设路线', statusSystem: '系统', utc: 'UTC', online: '在线', footerTagline: '精准时间协调'
+            },
+            en: {
+                headerTitle: 'Meeting Sync', headerSubtitle: 'Timezone Coordinator', panelBaseTime: 'Base Time', panelDestTime: 'Destination Times',
+                lblYear: 'Year', lblMonth: 'Month', lblDay: 'Day', lblHour: 'Hour', lblMinute: 'Min', lblTimezone: 'Timezone',
+                presetBtn: 'Load Preset Routes', statusSystem: 'System', utc: 'UTC', online: 'Online', footerTagline: 'Precision Time Coordination'
+            },
+            es: {
+                headerTitle: 'Sincronizar Reunión', headerSubtitle: 'Coordinador de Zonas Horarias', panelBaseTime: 'Hora Base', panelDestTime: 'Horas de Destino',
+                lblYear: 'Año', lblMonth: 'Mes', lblDay: 'Día', lblHour: 'Hora', lblMinute: 'Min', lblTimezone: 'Zona Horaria',
+                presetBtn: 'Cargar Rutas Predefinidas', statusSystem: 'Sistema', utc: 'UTC', online: 'En línea', footerTagline: 'Coordinación de Tiempo de Precisión'
+            },
+            pt: {
+                headerTitle: 'Sincronizar Reunião', headerSubtitle: 'Coordenador de Fusos Horários', panelBaseTime: 'Hora Base', panelDestTime: 'Horários de Destino',
+                lblYear: 'Ano', lblMonth: 'Mês', lblDay: 'Dia', lblHour: 'Hora', lblMinute: 'Min', lblTimezone: 'Fuso Horário',
+                presetBtn: 'Carregar Rotas Predefinidas', statusSystem: 'Sistema', utc: 'UTC', online: 'Online', footerTagline: 'Coordenação de Tempo de Precisão'
+            }
+        };
+
+        const locationNames = {
+            zh: {
+                'Asia/Shanghai': '中国 · 北京', 'America/Los_Angeles': '美国 · 洛杉矶',
+                'America/Chicago_Houston': '美国 · 休斯顿', 'America/Chicago_Rockford': '美国 · 罗克福德',
+                'America/Monterrey': '墨西哥 · 蒙特雷', 'America/Sao_Paulo': '巴西 · 圣保罗',
+                'Europe/Madrid': '西班牙 · 马德里', 'Europe/London': '英国 · 加的夫'
+            },
+            en: {
+                'Asia/Shanghai': 'China · Beijing', 'America/Los_Angeles': 'USA · Los Angeles',
+                'America/Chicago_Houston': 'USA · Houston', 'America/Chicago_Rockford': 'USA · Rockford',
+                'America/Monterrey': 'Mexico · Monterrey', 'America/Sao_Paulo': 'Brazil · São Paulo',
+                'Europe/Madrid': 'Spain · Madrid', 'Europe/London': 'UK · Cardiff'
+            },
+            es: {
+                'Asia/Shanghai': 'China · Pekin', 'America/Los_Angeles': 'EEUU · Los Ángeles',
+                'America/Chicago_Houston': 'EEUU · Houston', 'America/Chicago_Rockford': 'EEUU · Rockford',
+                'America/Monterrey': 'México · Monterrey', 'America/Sao_Paulo': 'Brasil · São Paulo',
+                'Europe/Madrid': 'España · Madrid', 'Europe/London': 'Reino Unido · Cardiff'
+            },
+            pt: {
+                'Asia/Shanghai': 'China · Pequim', 'America/Los_Angeles': 'EUA · Los Angeles',
+                'America/Chicago_Houston': 'EUA · Houston', 'America/Chicago_Rockford': 'EUA · Rockford',
+                'America/Monterrey': 'México · Monterrey', 'America/Sao_Paulo': 'Brasil · São Paulo',
+                'Europe/Madrid': 'Espanha · Madri', 'Europe/London': 'Reino Unido · Cardiff'
+            }
+        };
+
+        const allLocations = [
+            { id: 'Asia/Shanghai', tz: 'Asia/Shanghai' },
+            { id: 'America/Los_Angeles', tz: 'America/Los_Angeles' },
+            { id: 'America/Chicago_Houston', tz: 'America/Chicago' },
+            { id: 'America/Chicago_Rockford', tz: 'America/Chicago' },
+            { id: 'America/Monterrey', tz: 'America/Monterrey' },
+            { id: 'America/Sao_Paulo', tz: 'America/Sao_Paulo' },
+            { id: 'Europe/Madrid', tz: 'Europe/Madrid' },
+            { id: 'Europe/London', tz: 'Europe/London' }
         ];
 
-        let currentSecond = 0;
-        let updateInterval = null;
+        const defaultDestinations = ['Asia/Shanghai', 'America/Los_Angeles', 'America/Chicago_Houston', 'America/Monterrey', 'Europe/Madrid'];
+
+        let currentLang = 'zh';
+        let manualTheme = null;
+
+        function getAutoTheme() {
+            const hour = new Date().getHours();
+            return (hour >= 6 && hour < 18) ? 'day' : 'night';
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'day') {
+                document.documentElement.classList.add('day-mode');
+            } else {
+                document.documentElement.classList.remove('day-mode');
+            }
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            const theme = manualTheme || getAutoTheme();
+            if (theme === 'day') {
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+                label.textContent = 'DAY';
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+                label.textContent = 'NIGHT';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = manualTheme || getAutoTheme();
+            manualTheme = currentTheme === 'night' ? 'day' : 'night';
+            applyTheme(manualTheme);
+            updateThemeIcon();
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.getElementById('headerTitle').textContent = t.headerTitle;
+            document.getElementById('headerSubtitle').textContent = t.headerSubtitle;
+            document.getElementById('panelBaseTime').textContent = t.panelBaseTime;
+            document.getElementById('panelDestTime').textContent = t.panelDestTime;
+            document.getElementById('lblYear').textContent = t.lblYear;
+            document.getElementById('lblMonth').textContent = t.lblMonth;
+            document.getElementById('lblDay').textContent = t.lblDay;
+            document.getElementById('lblHour').textContent = t.lblHour;
+            document.getElementById('lblMinute').textContent = t.lblMinute;
+            document.getElementById('lblTimezone').textContent = t.lblTimezone;
+            document.getElementById('presetBtn').textContent = t.presetBtn;
+            document.getElementById('statusSystem').innerHTML = t.statusSystem + ': <span>' + t.online + '</span>';
+            document.getElementById('utcDisplay').innerHTML = t.utc + ': <span>--:--</span>';
+            document.getElementById('footerTagline').textContent = t.footerTagline;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+            updateTimezoneCards();
+        }
 
         function getTimezoneOffset(date, timezone) {
             const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
@@ -557,205 +681,168 @@
 
         function formatTimezoneOffset(offset) {
             const sign = offset >= 0 ? '+' : '';
-            return `UTC${sign}${offset}`;
+            return 'UTC' + sign + offset;
         }
 
         function init() {
+            applyTheme(getAutoTheme());
+            updateThemeIcon();
+
             const now = new Date();
-            
             const yearSelect = document.getElementById('year');
             for (let y = now.getFullYear() - 1; y <= now.getFullYear() + 2; y++) {
                 yearSelect.add(new Option(y, y));
             }
             yearSelect.value = now.getFullYear();
-            
+
             const monthSelect = document.getElementById('month');
             for (let m = 1; m <= 12; m++) {
                 monthSelect.add(new Option(m.toString().padStart(2, '0'), m));
             }
             monthSelect.value = now.getMonth() + 1;
-            
+
             updateDays();
-            
+
             const hourSelect = document.getElementById('hour');
             for (let h = 0; h < 24; h++) {
                 hourSelect.add(new Option(h.toString().padStart(2, '0'), h));
             }
             hourSelect.value = now.getHours();
-            
+
             const minuteSelect = document.getElementById('minute');
-            for (let m = 0; m < 60; m++) {
+            [0, 15, 30, 45].forEach(m => {
                 minuteSelect.add(new Option(m.toString().padStart(2, '0'), m));
-            }
-            minuteSelect.value = Math.floor(now.getMinutes() / 5) * 5;
-            
-            const secondSelect = document.getElementById('second');
-            for (let s = 0; s < 60; s++) {
-                secondSelect.add(new Option(s.toString().padStart(2, '0'), s));
-            }
-            secondSelect.value = 0;
-            
+            });
+            minuteSelect.value = Math.floor(now.getMinutes() / 15) * 15;
+
             const tzSelect = document.getElementById('baseTimezone');
-            timezones.forEach(tz => {
-                tzSelect.add(new Option(tz.name, tz.id));
+            allLocations.forEach(loc => {
+                const opt = document.createElement('option');
+                opt.value = loc.tz;
+                opt.textContent = locationNames[currentLang][loc.id] || loc.id;
+                tzSelect.appendChild(opt);
             });
             tzSelect.value = 'Asia/Shanghai';
-            
+
             initTimezoneCards();
-            
+
             yearSelect.addEventListener('change', updateAll);
             monthSelect.addEventListener('change', updateDays);
             document.getElementById('day').addEventListener('change', updateAll);
             document.getElementById('hour').addEventListener('change', updateAll);
             document.getElementById('minute').addEventListener('change', updateAll);
-            document.getElementById('second').addEventListener('change', updateAll);
             document.getElementById('baseTimezone').addEventListener('change', updateAll);
-            
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+            });
+
             updateAll();
-            
-            // Live update every second
-            updateInterval = setInterval(() => {
-                const sec = new Date().getSeconds();
-                if (sec !== currentSecond) {
-                    currentSecond = sec;
-                    updateAll();
-                }
-            }, 1000);
-            
-            // Show install hint
+            setLanguage(currentLang);
+
             if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
                 document.getElementById('installHint').style.display = 'block';
             }
-            
-            // Register Service Worker
+
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
         }
-        
+
         function updateDays() {
             const year = parseInt(document.getElementById('year').value);
             const month = parseInt(document.getElementById('month').value);
             const daySelect = document.getElementById('day');
             const currentDay = daySelect.value;
-            
             daySelect.innerHTML = '';
             const days = new Date(year, month, 0).getDate();
-            
             for (let d = 1; d <= days; d++) {
                 daySelect.add(new Option(d.toString().padStart(2, '0'), d));
             }
-            
             if (currentDay && parseInt(currentDay) <= days) {
                 daySelect.value = currentDay;
             } else {
                 daySelect.value = days;
             }
         }
-        
+
         function initTimezoneCards() {
             const container = document.getElementById('timeZones');
             container.innerHTML = '';
-            
-            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 5; i++) {
                 const card = document.createElement('div');
                 card.className = 'tz-card';
-                card.innerHTML = `
-                    <div class="tz-card-top">
-                        <div class="tz-number">${String(i + 1).padStart(2, '0')}</div>
-                        <div class="tz-selector">
-                            <select class="tz-select" data-index="${i}">
-                                ${timezones.map(tz => `<option value="${tz.id}">${tz.name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="tz-offset" data-offset="${i}">--</div>
-                    </div>
-                    <div class="tz-card-bottom">
-                        <div class="time-display">
-                            <span class="time-main" data-time="${i}">--:--</span>
-                            <span class="time-seconds" data-seconds="${i}">--</span>
-                        </div>
-                        <div class="time-meta">
-                            <span class="time-date" data-date="${i}">--/--</span>
-                            <span class="time-day" data-day="${i}">---</span>
-                        </div>
-                    </div>
-                `;
+                card.innerHTML = '<div class="tz-card-top"><div class="tz-number">' + String(i + 1).padStart(2, '0') + '</div><div class="tz-selector"><select class="tz-select" data-index="' + i + '"></select></div><div class="tz-offset" data-offset="' + i + '">--</div></div><div class="tz-card-bottom"><div class="time-display"><span class="time-main" data-time="' + i + '">--:--</span></div><div class="time-meta"><span class="time-date" data-date="' + i + '">--/--</span><span class="time-day" data-day="' + i + '">---</span></div></div>';
                 container.appendChild(card);
             }
-            
-            document.querySelectorAll('.tz-select').forEach(select => {
-                select.addEventListener('change', updateAll);
+            const selects = container.querySelectorAll('.tz-select');
+            allLocations.forEach((loc, idx) => {
+                selects.forEach(select => {
+                    const opt = document.createElement('option');
+                    opt.value = loc.id;
+                    opt.textContent = locationNames[currentLang][loc.id] || loc.id;
+                    select.appendChild(opt.cloneNode(true));
+                });
             });
-            
+            selects.forEach(select => select.addEventListener('change', updateAll));
             loadPresets();
         }
-        
+
         function loadPresets() {
-            const presets = [
-                'America/Chicago',   // 罗克福德
-                'Asia/Shanghai',     // 北京
-                'America/Los_Angeles', // 洛杉矶
-                'America/Chicago',   // 休斯顿
-                'America/Monterrey', // 蒙特雷
-                'Europe/Madrid',     // 马德里
-                'Europe/London',     // 加的夫
-                'America/Sao_Paulo'  // 圣保罗
-            ];
             document.querySelectorAll('.tz-select').forEach((select, i) => {
-                if (presets[i]) {
-                    select.value = presets[i];
+                if (defaultDestinations[i]) {
+                    select.value = defaultDestinations[i];
                 }
             });
             updateAll();
         }
-        
-        function formatDateTime(date) {
-            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            return {
-                hours: date.getHours().toString().padStart(2, '0'),
-                minutes: date.getMinutes().toString().padStart(2, '0'),
-                seconds: date.getSeconds().toString().padStart(2, '0'),
-                date: `${date.getMonth() + 1}/${date.getDate()}`,
-                day: days[date.getDay()]
-            };
-        }
-        
+
         function updateAll() {
             const year = parseInt(document.getElementById('year').value);
             const month = parseInt(document.getElementById('month').value);
             const day = parseInt(document.getElementById('day').value);
             const hour = parseInt(document.getElementById('hour').value);
             const minute = parseInt(document.getElementById('minute').value);
-            const second = parseInt(document.getElementById('second').value);
             const baseTz = document.getElementById('baseTimezone').value;
-            
-            const userDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+
+            const userDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
             const baseOffset = getTimezoneOffset(userDate, baseTz);
             const utcDate = new Date(userDate.getTime() - baseOffset * 60 * 60 * 1000);
-            
-            // Update UTC display
-            const utcStr = `${utcDate.getUTCHours().toString().padStart(2, '0')}:${utcDate.getUTCMinutes().toString().padStart(2, '0')}`;
+
+            const t = translations[currentLang];
+            const utcStr = utcDate.getUTCHours().toString().padStart(2, '0') + ':' + utcDate.getUTCMinutes().toString().padStart(2, '0');
             document.querySelector('#utcDisplay span').textContent = utcStr;
-            
+
             document.querySelectorAll('.tz-card').forEach((card, i) => {
                 const tzSelect = card.querySelector('.tz-select');
-                const tzId = tzSelect.value;
-                const tzOffset = getTimezoneOffset(utcDate, tzId);
-                
+                const locId = tzSelect.value;
+                const loc = allLocations.find(l => l.id === locId);
+                if (!loc) return;
+                const tzOffset = getTimezoneOffset(utcDate, loc.tz);
                 const localDate = new Date(utcDate.getTime() + tzOffset * 60 * 60 * 1000);
-                const formatted = formatDateTime(localDate);
-                
-                card.querySelector(`[data-time="${i}"]`).textContent = `${formatted.hours}:${formatted.minutes}`;
-                card.querySelector(`[data-seconds="${i}"]`).textContent = `:${formatted.seconds}`;
-                card.querySelector(`[data-date="${i}"]`).textContent = formatted.date;
-                card.querySelector(`[data-day="${i}"]`).textContent = formatted.day;
-                card.querySelector(`[data-offset="${i}"]`).textContent = formatTimezoneOffset(tzOffset);
+                const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                card.querySelector('[data-time="' + i + '"]').textContent = localDate.getHours().toString().padStart(2, '0') + ':' + localDate.getMinutes().toString().padStart(2, '0');
+                card.querySelector('[data-date="' + i + '"]').textContent = (localDate.getMonth() + 1) + '/' + localDate.getDate();
+                card.querySelector('[data-day="' + i + '"]').textContent = days[localDate.getDay()];
+                card.querySelector('[data-offset="' + i + '"]').textContent = formatTimezoneOffset(tzOffset);
             });
         }
-        
+
+        function updateTimezoneCards() {
+            const selects = document.querySelectorAll('.tz-select');
+            selects.forEach(select => {
+                const currentVal = select.value;
+                select.innerHTML = '';
+                allLocations.forEach(loc => {
+                    const opt = document.createElement('option');
+                    opt.value = loc.id;
+                    opt.textContent = locationNames[currentLang][loc.id] || loc.id;
+                    select.appendChild(opt);
+                });
+                select.value = currentVal;
+            });
+        }
+
         init();
     </script>
 </body>
